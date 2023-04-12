@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Josef Martiňák"
+		]
+	},
+	"annotateimage": "Image Annotator",
+	"annotateimage-desc": "Extension can edit and show images' annotations.",
+	"annotateimage-add": "Add annotation",
+	"annotateimage-save": "Save",
+	"annotateimage-edit": "Edit",
+	"annotateimage-delete": "Delete",
+	"annotateimage-cancel": "Cancel",
+	"annotateimage-text": "Annotation's text (can contain WikiCode)",
+	"annotateimage-info": "This image contains annotations.<br>Move the mouse over the image to display.",
+	"annotateimage-success": "Annotation has been saved",
+	"annotateimage-error": "Unknown error - annotation hasn't been saved !!"
+}

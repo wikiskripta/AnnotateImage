@@ -1,0 +1,62 @@
+{
+	"name": "AnnotateImage",
+	"version": "0.1",
+	"author": "[https://www.wikiskripta.eu/w/User:Josmart Josef Martiňák]",
+	"url": "https://bitbucket.org/wikiskripta/annotateimage",
+	"descriptionmsg": "annotateimage-desc",
+	"license-name": "MIT",
+	"type": "editor",
+	"status": "stable",
+	"requires": {
+		"MediaWiki": ">= 1.39.0"
+	},
+	"MessagesDirs": {
+		"AnnotateImage": [
+			"i18n"
+		]
+	},
+	"AutoloadClasses": {
+		"AnnotateImageHooks": "AnnotateImageHooks.php"
+	},
+	"ResourceModules": {
+		"ext.AnnotateImageEmbed": {
+			"position": "bottom",
+			"styles": [
+				"ext.AnnotateImageEmbed.css"
+			],
+			"scripts": [
+				"ext.AnnotateImageEmbed.js"
+			],
+			"messages": ["annotateimage-info"]
+		},
+		"ext.AnnotateImageEdit": {
+			"position": "bottom",
+			"styles": [
+				"ext.AnnotateImageEdit.css"
+			],
+			"scripts": [
+				"ext.AnnotateImageEdit.js"
+			],
+			"messages": [
+				"annotateimage-info",
+				"annotateimage-add",
+				"annotateimage-delete",
+				"annotateimage-save",
+				"annotateimage-edit",
+				"annotateimage-delete",
+				"annotateimage-cancel",
+				"annotateimage-text",
+				"annotateimage-success",
+				"annotateimage-error"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "AnnotateImage/resources"
+	},
+	"Hooks": {
+		"BeforePageDisplay": "AnnotateImageHooks::fireAnnotator"
+	},
+	"manifest_version": 2
+}
