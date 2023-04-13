@@ -36,13 +36,14 @@ This extension is available in English and Czech language. For other languages, 
 * [Josef Martiňák](https://www.wikiskripta.eu/w/User:Josmart)
 * MIT License, Copyright (c) 2023 First Faculty of Medicine, Charles University
 
+## Third party plugins and libraries
+
+* [An Image Annotation plugin for jQuery](https://github.com/flipbit/jquery-image-annotate)
+* [jQuery UI](https://jqueryui.com/)
+
 ## Poznámky
 
 * Použít obrázek https://www.wikiskripta.eu/w/Soubor:Anotace_ikona.svg
 * Zkusit to upravit, ať se to obejde bez jquery-ui
 * V extensions.json tahat jen ext.js a ostatní potřebné tahat až podle toho, jestli jsou na stránce nějaké obrázky (mw.load?)
 
-## Third party plugins
-
-* [An Image Annotation plugin for jQuery](https://github.com/flipbit/jquery-image-annotate)
-* [jQuery UI](https://jqueryui.com/)

@@ -18,27 +18,32 @@ class AnnotateImageHooks {
 
 		if( !$out->isArticle() ) return true;
 
-		// musí to tady být??????
-		$action = $out->getRequest()->getText("action");
-		if(empty($action) || $action!="view")  return true;
-
 		$title = $out->getTitle();
 		$ns = $title->getNamespace();
+		$config = $out->getConfig();
 
 		if($ns == 6) {
-			if(preg_match("/(jpg|png)$/i", $title->getDBkey())) {
+			if(preg_match("/(" . $config->get("AllowedExtensions") . ")$/i", $title->getDBkey())) {
 				// fire the editor
 
+				
 				$out->addModules('ext.AnnotateImageEdit');
 			}
-			else return true;
 		}
 		else {
 			// show annotations
-
 			$out->addModules('ext.AnnotateImageEmbed');
+			if(preg_match_all("/<img.*?width=\"([0-9]*)\"/", $out->mBodytext, $matches, PREG_SET_ORDER)) {
+				foreach ( $matches as $m ) {
+					if(intval($m[1]) > 200) {
+						$out->mBodytext .= "<div id='AnnImCofig' class='d-none' data-allowedextensions='" . $config->get("AllowedExtensions") . "' data-minwidth='" . $config->get("MinWidth") . "'></div>";
+						$out->addModules('ext.AnnotateImageEmbed');
+						break;
+					}
+				}
+			}
 		}
-
+		return true;
 		
 		/*
 		$alerts = "<div id='bcDanger' class='alert alert-danger d-none mt-3 mb-3' role='alert'><br><button class='btn btn-secondary btn-sm refreshBtn mt-2'>" . wfMessage( "bettercomments-refresh" )->plain() . "</button></div>\n";
@@ -73,6 +78,5 @@ class AnnotateImageHooks {
 			$out->mBodytext .= $alerts . $form;
 		}
 		*/
-		return true;
 	}
 }

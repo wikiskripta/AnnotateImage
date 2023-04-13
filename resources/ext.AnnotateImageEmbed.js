@@ -4,6 +4,35 @@
 
 ( function ( mw, $ ) {
 
+	var allowedExtensions = $("#AnnImCofig").data("allowedextensions");
+	var minWidth = $("#AnnImCofig").data("minwidth");
+
+	$('img').each(function(){
+		var width = $(this).attr('width');
+		//let re = new RegExp("\.(" + allowedExtensions + ")");
+		//console.log("In italian.jpg".match(re));
+		if(width != undefined && width > minWidth) {
+			// get filename
+			var src = $(this).attr('src');
+			let re = new RegExp("/sites/[^/]*");
+			src = src.replace(re, '');
+			if(!src.includes("/thumb/")) re = new RegExp(".*/([^/]*)$");
+			else re = new RegExp(".*/([^/]*)/[^/]*$");
+			let match = src.match(re);
+			src = match[1];
+
+
+			console.log(src);
+			
+			// display annotations
+
+			//let re = new RegExp(".*?/(.[^/]*)/[^/]*$");
+			///sites/images/.../In_italian.jpg
+			///sites/images/thumb/.../In_italian.jpg/150px-In_italian.jpg	
+		}
+		//<a href="/w/Soubor:Lidska_kostra.svg" class="image"><img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Lidska_kostra.svg/langcs-300px-Lidska_kostra.svg.png" decoding="async" width="300" 
+	});
+
 	/*
 	var conf = mw.config.values;
 	var pageAPI = location.origin + "/api.php?action=query";

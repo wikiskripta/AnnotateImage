@@ -25,6 +25,8 @@
 				"ext.AnnotateImageEmbed.css"
 			],
 			"scripts": [
+				"jquery-ui.min.js",
+				"jquery.annotate.js",
 				"ext.AnnotateImageEmbed.js"
 			],
 			"messages": ["annotateimage-info"]
@@ -35,8 +37,13 @@
 				"ext.AnnotateImageEdit.css"
 			],
 			"scripts": [
+				"jquery-ui.min.js",
+				"jquery.annotate.min.js",
 				"ext.AnnotateImageEdit.js"
 			],
+			"dependencies": [
+                "mediawiki.util"
+            ],
 			"messages": [
 				"annotateimage-info",
 				"annotateimage-add",
@@ -49,7 +56,10 @@
 				"annotateimage-success",
 				"annotateimage-error"
 			]
-		}
+		},
+		"dependencies": [
+			"mediawiki.util"
+		]
 	},
 	"ResourceFileModulePaths": {
 		"localBasePath": "resources",
@@ -57,6 +67,19 @@
 	},
 	"Hooks": {
 		"BeforePageDisplay": "AnnotateImageHooks::fireAnnotator"
+	},
+	"config": {
+		"AllowedExtensions": {
+			"value": "jpg|png|svg",
+			"description": "File extensions available for use with an annotator."
+		},
+		"MinWidth": {
+			"value": 200,
+			"description": "Min width of an annotable image."
+		}
+	},
+	"ConfigRegistry": {
+		"AnnotateImage": "GlobalVarConfig::newInstance"
 	},
 	"manifest_version": 2
 }
