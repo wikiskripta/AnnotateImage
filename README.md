@@ -22,6 +22,18 @@ víceřadý cylindrický epitel s řasinkami a [[Pohárková buňka|pohárkovým
 
 * Make sure you have MediaWiki 1.39+ installed.
 * Your skin should use bootstrap 5.
+* Create templates
+
+'''
+Šablona:ImageNote:
+<includeonly><div class="ImageNote d-none" data-id="{{{id}}}" data-x="{{{x}}}" data-y="{{{y}}}" data-w="{{{w}}}" data-h="{{{h}}}" data-dimx="{{{dimx}}}" data-dimy="{{{dimy}}}">
+{{#switch:{{NAMESPACE}}|Soubor=[[Kategorie:Obrázky s anotacemi|{{PAGENAME}}]]}}
+{{#ifeq:{{{id|{{{1}}}}}}|10|{{#switch:{{NAMESPACE}}|Soubor=[[Kategorie:Obrázky s 10+ anotacemi|{{PAGENAME}}]]}}}}</includeonly>
+
+Šablona:ImageNoteEnd:
+<includeonly></div></includeonly>
+'''
+
 * Download and place the extension to your _/extensions/_ folder.
 * Add the following code to your LocalSettings.php: `wfLoadExtension( 'AnnotateImage' )`;
 * In case you're using [ImageAnnotator from wikimedia](https://commons.wikimedia.org/wiki/Help:Image-Annotator), please deactivate it.

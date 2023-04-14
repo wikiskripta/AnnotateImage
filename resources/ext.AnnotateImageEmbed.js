@@ -6,31 +6,76 @@
 
 	var allowedExtensions = $("#AnnImCofig").data("allowedextensions");
 	var minWidth = $("#AnnImCofig").data("minwidth");
+	var pageAPI = location.origin + "/api.php";
 
 	$('img').each(function(){
 		var width = $(this).attr('width');
-		//let re = new RegExp("\.(" + allowedExtensions + ")");
-		//console.log("In italian.jpg".match(re));
-		if(width != undefined && width > minWidth) {
+		var height = $(this).attr('height');
+		if(width != undefined && width >= minWidth) {
 			// get filename
 			var src = $(this).attr('src');
-			let re = new RegExp("/sites/[^/]*");
+			var img = $(this);
+			var re = new RegExp("/sites/[^/]*");
 			src = src.replace(re, '');
 			if(!src.includes("/thumb/")) re = new RegExp(".*/([^/]*)$");
 			else re = new RegExp(".*/([^/]*)/[^/]*$");
-			let match = src.match(re);
+			var match = src.match(re);
 			src = match[1];
 
+			// is this extension allowed?
+			re = new RegExp("\.(" + allowedExtensions + ")$");
+			if(!src.match(re)) return true;
 
-			console.log(src);
-			
-			// display annotations
-
-			//let re = new RegExp(".*?/(.[^/]*)/[^/]*$");
-			///sites/images/.../In_italian.jpg
-			///sites/images/thumb/.../In_italian.jpg/150px-In_italian.jpg	
+			// get info about picture (api.php?action=parse&page=Soubor:Cystadenoma_mucinosum_ovarii_(55A).jpg&prop=wikitext&formatversion=2)
+			$.getJSON( pageAPI, {
+				action: "parse",
+				page: "File:" + decodeURI(src),
+				prop: "wikitext",
+				formatversion: "2",
+				format: "json"
+			})
+			.done(function( data ) {
+				var imgPageContent = data.parse.wikitext;
+				//console.log(imgPageContent);
+				// Find all annotations
+				re = /\{\{ImageNote\|id=([0-9]*)\|x=([0-9]*)\|y=([0-9]*)\|w=([0-9]*)\|h=([0-9]*)\|dimx=([0-9]*)\|dimy=([0-9]*)[^\}]*}}([^\{]*)\{\{ImageNoteEnd\|id=[0-9]*[^\}]*}}/g;
+				let annotations = [...imgPageContent.matchAll(re)];
+				var arr = [];
+				var jsonAnnot;
+				annotations.forEach((annot) => {
+					let id = annot[1];
+					let x = annot[2];
+					let y = annot[3];
+					let w = annot[4];
+					let h = annot[5];
+					let dimx = annot[6];
+					let dimy = annot[7];
+					let text = annot[8].trim();
+					// rescale
+					console.log(annot);
+					x = Math.round(x*width/dimx);
+					w = Math.round(w*width/dimx);
+					y = Math.round(y*height/dimy);
+					h = Math.round(h*height/dimy);
+					jsonAnnot = {
+						'top': y,
+						'left': x,
+						'width': w,
+						'height': h,
+						'text': text,
+						'id': id,
+						'editable': true
+					}
+					arr.push(jsonAnnot);
+				});
+				console.log(arr);
+				img.annotateImage({
+					editable: true,
+					useAjax: false,
+					notes: arr
+				});
+			});
 		}
-		//<a href="/w/Soubor:Lidska_kostra.svg" class="image"><img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Lidska_kostra.svg/langcs-300px-Lidska_kostra.svg.png" decoding="async" width="300" 
 	});
 
 	/*
@@ -226,4 +271,6 @@
 		$(this).parent().parent().parent().collapse("hide");
 	});
 	*/
+
+
 }( mediaWiki, jQuery ) );

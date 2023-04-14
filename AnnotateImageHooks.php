@@ -35,7 +35,7 @@ class AnnotateImageHooks {
 			$out->addModules('ext.AnnotateImageEmbed');
 			if(preg_match_all("/<img.*?width=\"([0-9]*)\"/", $out->mBodytext, $matches, PREG_SET_ORDER)) {
 				foreach ( $matches as $m ) {
-					if(intval($m[1]) > 200) {
+					if(intval($m[1]) >= $config->get("MinWidth")) {
 						$out->mBodytext .= "<div id='AnnImCofig' class='d-none' data-allowedextensions='" . $config->get("AllowedExtensions") . "' data-minwidth='" . $config->get("MinWidth") . "'></div>";
 						$out->addModules('ext.AnnotateImageEmbed');
 						break;

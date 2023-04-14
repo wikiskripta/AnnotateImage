@@ -74,7 +74,7 @@
 			"description": "File extensions available for use with an annotator."
 		},
 		"MinWidth": {
-			"value": 200,
+			"value": 250,
 			"description": "Min width of an annotable image."
 		}
 	},
