@@ -26,12 +26,16 @@ víceřadý cylindrický epitel s řasinkami a [[Pohárková buňka|pohárkovým
 
 '''
 Šablona:ImageNote:
-<includeonly><div class="ImageNote d-none" data-id="{{{id}}}" data-x="{{{x}}}" data-y="{{{y}}}" data-w="{{{w}}}" data-h="{{{h}}}" data-dimx="{{{dimx}}}" data-dimy="{{{dimy}}}">
-{{#switch:{{NAMESPACE}}|Soubor=[[Kategorie:Obrázky s anotacemi|{{PAGENAME}}]]}}
-{{#ifeq:{{{id|{{{1}}}}}}|10|{{#switch:{{NAMESPACE}}|Soubor=[[Kategorie:Obrázky s 10+ anotacemi|{{PAGENAME}}]]}}}}</includeonly>
+<includeonly>{{#ifeq:{{{id}}}|1|[[Kategorie:Obrázky s anotacemi]]}}
+{{#ifeq:{{{id}}}|10|[[Kategorie:Obrázky s 10+ anotacemi]]}}
+</includeonly>
+
+{{#switch:{{NAMESPACE}}|Soubor=[[Kategorie:Obrázky s anotacemi]]}}
+{{#ifeq:{{{id|{{{1}}}}}}|10|{{#switch:{{NAMESPACE}}|Soubor=[[Kategorie:Obrázky s 10+ anotacemi|{{PAGENAME}}]]  }}  }}</includeonly>
+
 
 Šablona:ImageNoteEnd:
-<includeonly></div></includeonly>
+<includeonly></includeonly>
 '''
 
 * Download and place the extension to your _/extensions/_ folder.

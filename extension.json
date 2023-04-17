@@ -25,7 +25,6 @@
 				"ext.AnnotateImageEmbed.css"
 			],
 			"scripts": [
-				"jquery-ui.min.js",
 				"jquery.annotate.js",
 				"ext.AnnotateImageEmbed.js"
 			],
