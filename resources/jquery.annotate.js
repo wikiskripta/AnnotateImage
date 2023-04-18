@@ -1,10 +1,8 @@
 /// <reference path="jquery-1.2.6-vsdoc.js" />
 (function($) {
-
     $.fn.annotateImage = function(options) {
         ///	<summary>
         ///		Creates annotations on the given image.
-        ///     Images are loaded from the "getUrl" propety passed into the options.
         ///	</summary>
         var opts = $.extend({}, $.fn.annotateImage.defaults, options);
         var image = this;
@@ -13,7 +11,6 @@
         this.mode = 'view';
 
         // Assign defaults
-        this.getUrl = opts.getUrl;
         this.saveUrl = opts.saveUrl;
         this.deleteUrl = opts.deleteUrl;
         this.editable = opts.editable;
@@ -49,11 +46,7 @@
         });
 
         // load the notes
-        if (this.useAjax) {
-            $.fn.annotateImage.ajaxLoad(this);
-        } else {
-            $.fn.annotateImage.load(this);
-        }
+        $.fn.annotateImage.load(this);
 
         // Add the "Add a note" button
         if (this.editable) {
@@ -74,7 +67,6 @@
     * Plugin Defaults
     **/
     $.fn.annotateImage.defaults = {
-        getUrl: 'your-get.rails',
         saveUrl: 'your-save.rails',
         deleteUrl: 'your-delete.rails',
         editable: true,
@@ -90,17 +82,6 @@
             image.notes[image.notes[i]].destroy();
         }
         image.notes = new Array();
-    };
-
-    $.fn.annotateImage.ajaxLoad = function(image) {
-        ///	<summary>
-        ///		Loads the annotations from the "getUrl" property passed in on the
-        ///     options object.
-        ///	</summary>
-        $.getJSON(image.getUrl + '?ticks=' + $.fn.annotateImage.getTicks(), function(data) {
-            image.notes = data;
-            $.fn.annotateImage.load(image);
-        });
     };
 
     $.fn.annotateImage.load = function(image) {
@@ -156,10 +137,10 @@
                     data: form.serialize(),
                     error: function(e) { alert("An error occured saving that note.") },
                     success: function(data) {
-				if (data.annotation_id != undefined) {
-					editable.note.id = data.annotation_id;
-				}
-		    },
+				        if (data.annotation_id != undefined) {
+					        editable.note.id = data.annotation_id;
+				        }
+		            },
                     dataType: "json"
                 });
             }
@@ -173,7 +154,6 @@
                 note.resetPosition(editable, text);
                 image.notes.push(editable.note);
             }
-
             editable.destroy();
         });
         editable.form.append(ok);
@@ -296,11 +276,11 @@
         this.editable = (note.editable && image.editable);
 
         // Add the area
-        this.area = $('<div class="image-annotate-area' + (this.editable ? ' image-annotate-area-editable' : '') + '"><div></div></div>');
+        this.area = $('<div class="image-annotate-area' + (this.editable ? ' image-annotate-area-editable' : '') + '" data-id="' + note.id + '"><div></div></div>');
         image.canvas.children('.image-annotate-view').prepend(this.area);
 
         // Add the note
-        this.form = $('<div class="image-annotate-note">' + note.text + '</div>');
+        this.form = $('<div class="image-annotate-note" data-id="' + note.id + '">' + note.text + '</div>');
         this.form.hide();
         image.canvas.children('.image-annotate-view').append(this.form);
         this.form.children('span.actions').hide();
@@ -321,6 +301,7 @@
             var form = this;
             this.area.click(function() {
                 form.edit();
+                return false;
             });
         }
     };
@@ -393,7 +374,6 @@
                         error: function(e) { alert("An error occured deleting that note.") }
                     });
                 }
-
                 annotation.image.mode = 'view';
                 editable.destroy();
                 annotation.destroy();

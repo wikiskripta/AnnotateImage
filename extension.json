@@ -37,12 +37,9 @@
 			],
 			"scripts": [
 				"jquery-ui.min.js",
-				"jquery.annotate.min.js",
+				"jquery.annotate.js",
 				"ext.AnnotateImageEdit.js"
 			],
-			"dependencies": [
-                "mediawiki.util"
-            ],
 			"messages": [
 				"annotateimage-info",
 				"annotateimage-add",
@@ -55,10 +52,7 @@
 				"annotateimage-success",
 				"annotateimage-error"
 			]
-		},
-		"dependencies": [
-			"mediawiki.util"
-		]
+		}
 	},
 	"ResourceFileModulePaths": {
 		"localBasePath": "resources",

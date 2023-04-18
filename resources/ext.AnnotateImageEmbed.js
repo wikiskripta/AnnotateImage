@@ -6,7 +6,6 @@
 
 	var allowedExtensions = $("#AnnImCofig").data("allowedextensions");
 	var minWidth = $("#AnnImCofig").data("minwidth");
-	var pageAPI = location.origin + "/api.php";
 
 	$('img').each(function(){
 		var width = $(this).attr('width');
@@ -27,16 +26,17 @@
 			if(!src.match(re)) return true;
 
 			// get info about picture (api.php?action=parse&page=Soubor:Cystadenoma_mucinosum_ovarii_(55A).jpg&prop=wikitext&formatversion=2)
-			$.getJSON( pageAPI, {
+			const params = {
 				action: "parse",
 				page: "File:" + decodeURI(src),
 				prop: "wikitext",
 				formatversion: "2",
 				format: "json"
-			})
-			.done(function( data ) {
+			};
+			const api = new mw.Api();
+			
+			api.get(params).done(function (data) {
 				var imgPageContent = data.parse.wikitext;
-				//console.log(imgPageContent);
 				// Find all annotations
 				re = /\{\{ImageNote\|id=([0-9]*)\|x=([0-9]*)\|y=([0-9]*)\|w=([0-9]*)\|h=([0-9]*)\|dimx=([0-9]*)\|dimy=([0-9]*)[^\}]*}}([^\{]*)\{\{ImageNoteEnd\|id=[0-9]*[^\}]*}}/g;
 				let annotations = [...imgPageContent.matchAll(re)];
