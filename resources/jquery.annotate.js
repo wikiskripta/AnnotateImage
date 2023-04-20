@@ -155,6 +155,7 @@
                 image.notes.push(editable.note);
             }
             editable.destroy();
+            $("#AnnImCofig").data("updated", "1"); // Save to DOM that annots have been changed
         });
         editable.form.append(ok);
     };
@@ -377,6 +378,7 @@
                 annotation.image.mode = 'view';
                 editable.destroy();
                 annotation.destroy();
+                $("#AnnImCofig").data("updated", "1"); // Save to DOM that annots have been changed
             });
             editable.form.append(del);
 

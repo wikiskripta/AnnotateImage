@@ -25,7 +25,7 @@ class AnnotateImageHooks {
 		if($ns == 6) {
 			if(preg_match("/(" . $config->get("AllowedExtensions") . ")$/i", $title->getDBkey())) {
 				// fire the editor
-				$out->mBodytext .= "<div id='AnnImCofig' class='d-none' data-allowedextensions='" . $config->get("AllowedExtensions") . "' data-minwidth='" . $config->get("MinWidth") . "'></div>";
+				$out->mBodytext .= "<div id='AnnImCofig' class='d-none' data-allowedextensions='" . $config->get("AllowedExtensions") . "' data-minwidth='" . $config->get("MinWidth") . "' data-updated=''></div>";
 				$out->addModules('ext.AnnotateImageEdit');
 			}
 		}
