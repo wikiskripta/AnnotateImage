@@ -50,7 +50,8 @@
 				"annotateimage-cancel",
 				"annotateimage-text",
 				"annotateimage-success",
-				"annotateimage-error"
+				"annotateimage-error",
+				"annotateimage-updated"
 			]
 		}
 	},

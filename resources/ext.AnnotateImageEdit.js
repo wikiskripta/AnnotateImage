@@ -19,6 +19,19 @@
 		var re = new RegExp("\.(" + allowedExtensions + ")$");
 		if(!src.match(re)) return true;
 
+		// define button labels for use in jquery plugin
+		$("#AnnImCofig").data("btnsave", mw.message("annotateimage-save").text());
+		$("#AnnImCofig").data("btncancel", mw.message("annotateimage-cancel").text());
+		$("#AnnImCofig").data("btndelete", mw.message("annotateimage-delete").text());
+		$("#AnnImCofig").data("btnadd", mw.message("annotateimage-add").text());
+
+		// Add info
+		let info = "<div class='d-flex flex-row small lh-sm mt-3 mb-3 AnnImInfo'><img src='https://www.wikiskripta.eu/thumb.php?f=Anotace_ikona.svg&width=35' alt='annotation' width='35' class='me-2'>";
+		re = new RegExp("#BR#");
+		info += "<div class=''>" + mw.message("annotateimage-info").text().replace(re, "<br>") +"</div>\n";
+		info += "<div class='AnnImAdd'></div>\n</div>";
+		$(info).insertAfter(img.parent());	
+
 		const params = {
 			action: "parse",
 			page: src,
@@ -95,27 +108,26 @@
 							w = Math.round(w*dimx/width);
 						}
 						content += "{{ImageNote|id=" + i + "|x=" + x + "|y=" + y + "|w=" + w + "|h=" + h + "|dimx=" + dimx + "|dimy=" + dimy + "}}\n";
-						content += text + "\n{{ImageNoteEnd|id=" + i + "}}\n\n";
+						content += text + "\n{{ImageNoteEnd|id=" + i + "}}\n";
 						i++;
 					});
 
 					// save to file article (// https://doc.wikimedia.org/mediawiki-core/master/js/#!/api/mw.Api)
 					api.edit(
 						src,
-						function ( revision ) {
+						function (revision) {
+							re = /\{\{ImageNote\|[^\}]*\}\}[^\{]*\{\{ImageNoteEnd\|[^\}]*\}\}/g;
+							$("#AnnImCofig").data("updated", "");
 							return {
-								text: revision.content.replace( 'foo', 'bar' ),
-								summary: 'Replace "foo" with "bar".',
-								assert: 'bot',
+								text: revision.content.replace(re, "").trimEnd() + "\n\n" + content,
+								summary: mw.message("annotateimage-updated").text(),
 								minor: true
 							};
 						}
 					)
 					.then( function () {
-						console.log( 'Saved!' );
+						//console.log( 'Saved!' );
 					});
-					//console.log(content);
-					$("#AnnImCofig").data("updated", "");
 				}
 			}, 1000); // 0.5s
 

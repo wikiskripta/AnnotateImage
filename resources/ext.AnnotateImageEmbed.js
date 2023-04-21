@@ -74,6 +74,12 @@
 					notes: arr
 				});
 			});
+
+			// Add info
+			let info = "<div class='d-flex flex-row small lh-sm mt-2'><img src='https://www.wikiskripta.eu/thumb.php?f=Anotace_ikona.svg&width=35' alt='annotation' width='35' class='me-2'>";
+			re = new RegExp("#BR#");
+			info += "<div class=''>" + mw.message("annotateimage-info").text().replace(re, "<br>") +"</div>\n</div>";
+			$(info).insertAfter(img.parent());
 		}
 	});
 }( mediaWiki, jQuery ) );
