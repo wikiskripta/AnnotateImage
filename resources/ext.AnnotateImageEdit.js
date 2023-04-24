@@ -58,6 +58,7 @@
 				dimy = parseInt(annot[7]);
 				let text = annot[8].trim();
 				// replace [[nazev_clanku_na_WS|text_odkazu]] na html odkaz
+				/*
 				re = /\[\[ *([^\]]*?) *\| *(.*?) *\]\]/ig;
 				text = text.replaceAll(re, '<a href="' + location.origin + '/w/$1">$2</a>');
 				re = /\[\[ *([^\]]*?) *\]\]/ig;
@@ -72,7 +73,7 @@
 				text = text.replaceAll(re, '<sub>$1</sub>');
 				re = /(\r|\n)/ig;
 				text = text.replaceAll(re, '<br>');
-				
+				*/
 				// rescale
 				let xResc = Math.round(x*width/dimx);
 				let wResc = Math.round(w*width/dimx);
@@ -104,7 +105,7 @@
 					var i = 1;
 					$(".image-annotate-area").each(function() {
 						let id = $(this).data("id");
-						let text = $(".image-annotate-note[data-id=" + id + "]").html();
+						let text = $(".image-annotate-note[data-id=" + id + "]").text();
 						let x = 0;
 						let y = 0;
 						let w = 0;

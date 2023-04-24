@@ -61,10 +61,12 @@
 					text = text.replaceAll(re, '<strong>$1</strong>');
 					re = /'' *(.*?)''/ig;
 					text = text.replaceAll(re, '<em>$1</em>');
+					/*
 					re = /<sup> *(.*?)<\/sup>/ig;
 					text = text.replaceAll(re, '<sup>$1</sup>');
 					re = /<sub> *(.*?)<\/sub>/ig;
 					text = text.replaceAll(re, '<sub>$1</sub>');
+					*/
 					re = /(\r|\n)/ig;
 					text = text.replaceAll(re, '<br>');
 
