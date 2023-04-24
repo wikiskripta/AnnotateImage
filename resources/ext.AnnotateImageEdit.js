@@ -26,9 +26,9 @@
 		$("#AnnImCofig").data("btnadd", mw.message("annotateimage-add").text());
 
 		// Add info
-		let info = "<div class='d-flex flex-row small lh-sm mt-3 mb-3 AnnImInfo'><img src='https://www.wikiskripta.eu/thumb.php?f=Anotace_ikona.svg&width=35' alt='annotation' width='35' class='me-2'>";
+		let info = "<div class='d-flex flex-row small lh-sm mt-3 mb-3 AnnImInfo'><img src='https://www.wikiskripta.eu/thumb.php?f=Anotace_ikona.svg&width=35' alt='annotation' width='35' class='me-2 mt-1'>";
 		re = new RegExp("#BR#");
-		info += "<div class=''>" + mw.message("annotateimage-info").text().replace(re, "<br>") +"</div>\n";
+		info += "<div class='mt-1'>" + mw.message("annotateimage-info").text().replace(re, "<br>") +"</div>\n";
 		info += "<div class='AnnImAdd'></div>\n</div>";
 		$(info).insertAfter(img.parent());	
 
@@ -57,6 +57,22 @@
 				dimx = parseInt(annot[6]);
 				dimy = parseInt(annot[7]);
 				let text = annot[8].trim();
+				// replace [[nazev_clanku_na_WS|text_odkazu]] na html odkaz
+				re = /\[\[ *([^\]]*?) *\| *(.*?) *\]\]/ig;
+				text = text.replaceAll(re, '<a href="' + location.origin + '/w/$1">$2</a>');
+				re = /\[\[ *([^\]]*?) *\]\]/ig;
+				text = text.replaceAll(re, '<a href="' + location.origin + '/w/$1">$1</a>');
+				re = /''' *(.*?)'''/ig;
+				text = text.replaceAll(re, '<strong>$1</strong>');
+				re = /'' *(.*?)''/ig;
+				text = text.replaceAll(re, '<em>$1</em>');
+				re = /<sup> *(.*?)<\/sup>/ig;
+				text = text.replaceAll(re, '<sup>$1</sup>');
+				re = /<sub> *(.*?)<\/sub>/ig;
+				text = text.replaceAll(re, '<sub>$1</sub>');
+				re = /(\r|\n)/ig;
+				text = text.replaceAll(re, '<br>');
+				
 				// rescale
 				let xResc = Math.round(x*width/dimx);
 				let wResc = Math.round(w*width/dimx);
@@ -88,7 +104,7 @@
 					var i = 1;
 					$(".image-annotate-area").each(function() {
 						let id = $(this).data("id");
-						let text = $(".image-annotate-note[data-id=" + id + "]").text();
+						let text = $(".image-annotate-note[data-id=" + id + "]").html();
 						let x = 0;
 						let y = 0;
 						let w = 0;

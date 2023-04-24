@@ -51,6 +51,23 @@
 					let dimx = annot[6];
 					let dimy = annot[7];
 					let text = annot[8].trim();
+
+					// replace [[nazev_clanku_na_WS|text_odkazu]] na html odkaz
+					re = /\[\[ *([^\]]*?) *\| *(.*?) *\]\]/ig;
+					text = text.replaceAll(re, '<a href="' + location.origin + '/w/$1">$2</a>');
+					re = /\[\[ *([^\]]*?) *\]\]/ig;
+					text = text.replaceAll(re, '<a href="' + location.origin + '/w/$1">$1</a>');
+					re = /''' *(.*?)'''/ig;
+					text = text.replaceAll(re, '<strong>$1</strong>');
+					re = /'' *(.*?)''/ig;
+					text = text.replaceAll(re, '<em>$1</em>');
+					re = /<sup> *(.*?)<\/sup>/ig;
+					text = text.replaceAll(re, '<sup>$1</sup>');
+					re = /<sub> *(.*?)<\/sub>/ig;
+					text = text.replaceAll(re, '<sub>$1</sub>');
+					re = /(\r|\n)/ig;
+					text = text.replaceAll(re, '<br>');
+
 					// rescale
 					x = Math.round(x*width/dimx);
 					w = Math.round(w*width/dimx);

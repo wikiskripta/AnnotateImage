@@ -22,7 +22,7 @@
     display: block;
 }
 .image-annotate-area-hover div {
-    border-color: yellow !important;
+    border-color: #707070 !important;
 }
 .image-annotate-note {
     background: #E7FFE7 none repeat scroll 0 0;
