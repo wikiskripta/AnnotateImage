@@ -12,7 +12,7 @@
 	"annotateimage-delete": "Delete",
 	"annotateimage-cancel": "Cancel",
 	"annotateimage-text": "Annotation's text (can contain WikiCode)",
-	"annotateimage-info": "This image contains annotations.#BR#Move the mouse over the image to display.",
+	"annotateimage-info": "This image can contain annotations.#BR#Move the mouse over the image to display.",
 	"annotateimage-success": "Annotation has been saved",
 	"annotateimage-error": "Unknown error - annotation hasn't been saved !!",
 	"annotateimage-updated": "Annotation of this image has been updated"

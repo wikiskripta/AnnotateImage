@@ -12,7 +12,7 @@
 	"annotateimage-delete": "Smazat",
 	"annotateimage-cancel": "Zrušit",
 	"annotateimage-text": "Text anotace (může obsahovat WikiKód)",
-	"annotateimage-info": "Tento obrázek obsahuje anotace.#BR#Pro zobrazení přesuňte ukazatel myši nad obrázek.",
+	"annotateimage-info": "Tento obrázek může obsahovat anotace.#BR#Pro zobrazení přesuňte ukazatel myši nad obrázek.",
 	"annotateimage-success": "Anotace byla uložena",
 	"annotateimage-error": "Neznámá chyba - anotaci se nepodařilo uložit !!",
 	"annotateimage-updated": "Anotace obrázku byla upravena"

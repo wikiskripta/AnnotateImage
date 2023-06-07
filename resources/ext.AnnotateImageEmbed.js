@@ -16,8 +16,14 @@
 			var img = $(this);
 			var re = new RegExp("/sites/[^/]*");
 			src = src.replace(re, '');
+
+			if(src.includes("/thumb/")) re = new RegExp(".*/([^/]*)/[^/]*$");
+			else if(src.includes("thumb.php")) re = new RegExp("f=(.*?)&width");
+			else re = new RegExp(".*/([^/]*)$");
+
 			if(!src.includes("/thumb/")) re = new RegExp(".*/([^/]*)$");
 			else re = new RegExp(".*/([^/]*)/[^/]*$");
+
 			var match = src.match(re);
 			src = match[1];
 
@@ -87,18 +93,19 @@
 					arr.push(jsonAnnot);
 				});
 				//console.log(arr);
-				img.annotateImage({
-					editable: false,
-					useAjax: false,
-					notes: arr
-				});
+				if(arr.length > 0) {
+					img.annotateImage({
+						editable: false,
+						useAjax: false,
+						notes: arr
+					});
+					// Add info
+					let info = "<div class='d-flex flex-row small lh-sm mt-2'><img src='https://www.wikiskripta.eu/thumb.php?f=Anotace_ikona.svg&width=35' alt='annotation' width='35' class='me-2'>";
+					re = new RegExp("#BR#");
+					info += "<div class=''>" + mw.message("annotateimage-info").text().replace(re, "<br>") +"</div>\n</div>";
+					$(info).insertAfter(img.parent());
+				}
 			});
-
-			// Add info
-			let info = "<div class='d-flex flex-row small lh-sm mt-2'><img src='https://www.wikiskripta.eu/thumb.php?f=Anotace_ikona.svg&width=35' alt='annotation' width='35' class='me-2'>";
-			re = new RegExp("#BR#");
-			info += "<div class=''>" + mw.message("annotateimage-info").text().replace(re, "<br>") +"</div>\n</div>";
-			$(info).insertAfter(img.parent());
 		}
 	});
 }( mediaWiki, jQuery ) );

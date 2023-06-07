@@ -30,7 +30,7 @@
 		re = new RegExp("#BR#");
 		info += "<div class='mt-1'>" + mw.message("annotateimage-info").text().replace(re, "<br>") +"</div>\n";
 		info += "<div class='AnnImAdd'></div>\n</div>";
-		$(info).insertAfter(img.parent());	
+		$(info).insertAfter(img.parent());
 
 		const params = {
 			action: "parse",
