@@ -1,4 +1,3 @@
-/// <reference path="jquery-1.2.6-vsdoc.js" />
 (function($) {
     $.fn.annotateImage = function(options) {
         ///	<summary>
@@ -11,10 +10,7 @@
         this.mode = 'view';
 
         // Assign defaults
-        this.saveUrl = opts.saveUrl;
-        this.deleteUrl = opts.deleteUrl;
         this.editable = opts.editable;
-        this.useAjax = opts.useAjax;
         this.notes = opts.notes;
 
         // Add the canvas
@@ -68,10 +64,7 @@
     * Plugin Defaults
     **/
     $.fn.annotateImage.defaults = {
-        saveUrl: 'your-save.rails',
-        deleteUrl: 'your-delete.rails',
         editable: true,
-        useAjax: true,
         notes: new Array()
     };
 
@@ -130,21 +123,6 @@
             var text = $('#image-annotate-text').val();
             $.fn.annotateImage.appendPosition(form, editable)
             image.mode = 'view';
-
-            // Save via AJAX
-            if (image.useAjax) {
-                $.ajax({
-                    url: image.saveUrl,
-                    data: form.serialize(),
-                    error: function(e) { alert("An error occured saving that note.") },
-                    success: function(data) {
-				        if (data.annotation_id != undefined) {
-					        editable.note.id = data.annotation_id;
-				        }
-		            },
-                    dataType: "json"
-                });
-            }
 
             // Add to canvas
             if (note) {
@@ -272,7 +250,6 @@
         ///		Defines a annotation area.
         ///	</summary>
         this.image = image;
-
         this.note = note;
 
         this.editable = (note.editable && image.editable);
@@ -297,7 +274,7 @@
         }, function() {
             setTimeout(() => {
                 annotation.hide();
-            }, "250");
+            }, "500");
             //annotation.hide();
         });
 
@@ -372,13 +349,6 @@
 
                 $.fn.annotateImage.appendPosition(form, editable)
 
-                if (annotation.image.useAjax) {
-                    $.ajax({
-                        url: annotation.image.deleteUrl,
-                        data: form.serialize(),
-                        error: function(e) { alert("An error occured deleting that note.") }
-                    });
-                }
                 annotation.image.mode = 'view';
                 editable.destroy();
                 annotation.destroy();

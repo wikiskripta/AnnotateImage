@@ -1,27 +1,6 @@
 @charset "utf-8";
 /* CSS Document */
 
-/*
-.image-annotate-add {
-    background: #fff url(images/asterisk_yellow.png) no-repeat 3px 3px;
-    border: solid 1px #ccc !important;
-    color: #000 !important;
-    cursor: pointer;
-    display: block;
-    float: left;
-    font-family: Verdana, Sans-Serif;
-    font-size: 12px;    
-    height: 18px;
-    line-height: 18px;    
-    padding: 2px 0 2px 24px;
-    margin: 5px 0;
-    width: 64px;
-    text-decoration: none;
-}
-.image-annotate-add:hover {
-    background-color: #eee;
-}
-*/
 .image-annotate-canvas {
     border: solid 1px #ccc;
     background-position: left top;
@@ -39,18 +18,22 @@
     position: absolute;
 }
 .image-annotate-area div {
-    border: 1px solid #FFFFFF;
+    border: 2px solid #FFFFFF;
     display: block;
 }
+/*
 .image-annotate-area-hover div {
     border-color: #707070 !important;
 }
+*/
 .image-annotate-area-editable {
     cursor: pointer;
 }
+/*
 .image-annotate-area-editable-hover div {
     border-color: #707070 !important;
 }
+*/
 .image-annotate-note {
     background: #E7FFE7 none repeat scroll 0 0;
     border: solid 1px #397F39;
@@ -73,7 +56,7 @@
     background: #f8f9fa none repeat scroll 0 0;
     border-radius:2px;
     border: 1px solid #cccccc;
-    height: 100px;
+    height: 320px;
     padding: 7px;
     position: absolute;
     width: 265px;
@@ -91,12 +74,13 @@
     width: 90%;
 }
 #image-annotate-edit-form textarea {
-    height: 50px;
+    height: 262px;
     font-family: Verdana, Sans-Serif;
     font-size: 12px;    
     width: 248px;
     padding:5px;
     margin-bottom:10px;
+    resize: none;
 }
 #image-annotate-edit-form fieldset {
     background: transparent none repeat scroll 0 0;
@@ -130,7 +114,7 @@
 }
 */
 .image-annotate-edit-area {
-    border: 1px solid black;
+    border: 3px solid white;
     cursor: move;
     display: block;
     height: 60px;

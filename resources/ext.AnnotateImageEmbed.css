@@ -14,16 +14,19 @@
     position: relative;
 }
 .image-annotate-area {
+    /*border: 1px solid #000000;*/
     border: 1px solid #000000;
     position: absolute;
 }
 .image-annotate-area div {
-    border: 1px solid #FFFFFF;
+    border: 2px solid #FFFFFF;
     display: block;
 }
+/*
 .image-annotate-area-hover div {
     border-color: #707070 !important;
 }
+*/
 .image-annotate-note {
     background: #E7FFE7 none repeat scroll 0 0;
     border: solid 1px #397F39;
@@ -34,4 +37,5 @@
     max-width: 200px;
     padding: 3px 7px;
     position: absolute;
+    z-index: 10000;
 }

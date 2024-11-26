@@ -4,6 +4,7 @@
 
 ( function ( mw, $ ) {
 
+mw.loader.using(['mediawiki.api'], function() {
 	var allowedExtensions = $("#AnnImCofig").data("allowedextensions");
 	var minWidth = $("#AnnImCofig").data("minwidth");
 
@@ -21,16 +22,12 @@
 			else if(src.includes("thumb.php")) re = new RegExp("f=(.*?)&width");
 			else re = new RegExp(".*/([^/]*)$");
 
-			if(!src.includes("/thumb/")) re = new RegExp(".*/([^/]*)$");
-			else re = new RegExp(".*/([^/]*)/[^/]*$");
-
 			var match = src.match(re);
 			src = match[1];
 
 			// is this extension allowed?
 			re = new RegExp("\.(" + allowedExtensions + ")$");
 			if(!src.match(re)) return true;
-
 			// get info about picture (api.php?action=parse&page=Soubor:Cystadenoma_mucinosum_ovarii_(55A).jpg&prop=wikitext&formatversion=2)
 			const params = {
 				action: "parse",
@@ -40,7 +37,6 @@
 				format: "json"
 			};
 			const api = new mw.Api();
-			
 			api.get(params).done(function (data) {
 				var imgPageContent = data.parse.wikitext;
 				// Find all annotations
@@ -58,21 +54,27 @@
 					let dimy = annot[7];
 					let text = annot[8].trim();
 
-					// replace [[nazev_clanku_na_WS|text_odkazu]] na html odkaz
+					// interní linky
 					re = /\[\[ *([^\]]*?) *\| *(.*?) *\]\]/ig;
 					text = text.replaceAll(re, '<a href="' + location.origin + '/w/$1">$2</a>');
 					re = /\[\[ *([^\]]*?) *\]\]/ig;
 					text = text.replaceAll(re, '<a href="' + location.origin + '/w/$1">$1</a>');
+					// bold
 					re = /''' *(.*?)'''/ig;
 					text = text.replaceAll(re, '<strong>$1</strong>');
+					// em
 					re = /'' *(.*?)''/ig;
 					text = text.replaceAll(re, '<em>$1</em>');
-					/*
-					re = /<sup> *(.*?)<\/sup>/ig;
-					text = text.replaceAll(re, '<sup>$1</sup>');
-					re = /<sub> *(.*?)<\/sub>/ig;
-					text = text.replaceAll(re, '<sub>$1</sub>');
-					*/
+					// ul
+					re = /(\r\n|\r|\n)\* */ig;
+					text = text.replaceAll(re, '\r\n&bull;&nbsp;');
+					// dt
+					re = /(\r\n|\r|\n); *([^(\r\n|\r|\n)]*)/ig;
+					text = text.replaceAll(re, '\r\n<strong>$2</strong>');
+					// dd
+					re = /(\r\n|\r|\n): */ig;
+					text = text.replaceAll(re, '\r\n&nbsp;&nbsp;');
+					// br
 					re = /(\r|\n)/ig;
 					text = text.replaceAll(re, '<br>');
 
@@ -96,7 +98,6 @@
 				if(arr.length > 0) {
 					img.annotateImage({
 						editable: false,
-						useAjax: false,
 						notes: arr
 					});
 					// Add info
@@ -108,4 +109,5 @@
 			});
 		}
 	});
+});
 }( mediaWiki, jQuery ) );

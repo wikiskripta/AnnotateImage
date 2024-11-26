@@ -4,6 +4,7 @@
 
 ( function ( mw, $ ) {
 
+mw.loader.using(['mediawiki.api'], function() {
 	var allowedExtensions = $("#AnnImCofig").data("allowedextensions");
 	var minWidth = $("#AnnImCofig").data("minwidth");
 	var img = $(".fullImageLink > a > img");
@@ -19,6 +20,22 @@
 		var re = new RegExp("\.(" + allowedExtensions + ")$");
 		if(!src.match(re)) return true;
 
+		// get image's dimensions
+		const api = new mw.Api();
+		var params = {
+			action: 'query',
+			prop: 'imageinfo',
+			iiprop: 'size',
+			titles: src,
+			format: 'json'
+		};
+
+		api.get(params).done(function (data) {
+			const imageInfo = data.query.pages[Object.keys(data.query.pages)[0]];
+			if(dimx == undefined) dimx = imageInfo.imageinfo[0].width;
+			if(dimy == undefined) dimy = imageInfo.imageinfo[0].height;
+		});
+
 		// define button labels for use in jquery plugin
 		$("#AnnImCofig").data("btnsave", mw.message("annotateimage-save").text());
 		$("#AnnImCofig").data("btncancel", mw.message("annotateimage-cancel").text());
@@ -32,14 +49,13 @@
 		info += "<div class='AnnImAdd'></div>\n</div>";
 		$(info).insertAfter(img.parent());
 
-		const params = {
+		params = {
 			action: "parse",
 			page: src,
 			prop: "wikitext",
 			formatversion: "2",
 			format: "json"
 		};
-		const api = new mw.Api();
 		
 		api.get(params).done(function (data) {
 			var imgPageContent = data.parse.wikitext;
@@ -93,7 +109,6 @@
 			});
 			img.annotateImage({
 				editable: true,
-				useAjax: false,
 				notes: arrResc
 			});
 
@@ -105,7 +120,7 @@
 					var i = 1;
 					$(".image-annotate-area").each(function() {
 						let id = $(this).data("id");
-						let text = $(".image-annotate-note[data-id=" + id + "]").text();
+						let text = $(".image-annotate-note[data-id='" + id + "']").text();
 						let x = 0;
 						let y = 0;
 						let w = 0;
@@ -128,7 +143,6 @@
 						content += text + "\n{{ImageNoteEnd|id=" + i + "}}\n";
 						i++;
 					});
-
 					// save to file article (// https://doc.wikimedia.org/mediawiki-core/master/js/#!/api/mw.Api)
 					api.edit(
 						src,
@@ -150,4 +164,5 @@
 
 		});
 	}
+});
 }( mediaWiki, jQuery ) );

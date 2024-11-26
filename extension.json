@@ -64,7 +64,7 @@
 	},
 	"config": {
 		"AllowedExtensions": {
-			"value": "jpg|png|svg|JPG|PNG|SVG",
+			"value": "jpg|png|svgjpg|png|svg|JPG|PNG|SVG",
 			"description": "File extensions available for use with an annotator."
 		},
 		"MinWidth": {
