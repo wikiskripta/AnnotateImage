@@ -4,6 +4,9 @@
 
 ( function ( mw, $ ) {
 
+// remove onclick on fullimage
+$('.fullImageLink > a ').attr('href', '#');
+
 mw.loader.using(['mediawiki.api'], function() {
 	var allowedExtensions = $("#AnnImCofig").data("allowedextensions");
 	var minWidth = $("#AnnImCofig").data("minwidth");
