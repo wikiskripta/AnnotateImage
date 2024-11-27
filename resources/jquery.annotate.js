@@ -1,4 +1,5 @@
 (function($) {
+    var newCounter = 1;
     $.fn.annotateImage = function(options) {
         ///	<summary>
         ///		Creates annotations on the given image.
@@ -178,7 +179,9 @@
             this.note = note;
         } else {
             var newNote = new Object();
-            newNote.id = "new";
+            //newNote.id = "new";
+            newNote.id = "new" + newCounter;
+            newCounter++;
             newNote.top = 30;
             newNote.left = 30;
             newNote.width = 30;

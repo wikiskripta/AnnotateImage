@@ -73,23 +73,7 @@ mw.loader.using(['mediawiki.api'], function() {
 				dimx = parseInt(annot[6]);
 				dimy = parseInt(annot[7]);
 				let text = annot[8].trim();
-				// replace [[nazev_clanku_na_WS|text_odkazu]] na html odkaz
-				/*
-				re = /\[\[ *([^\]]*?) *\| *(.*?) *\]\]/ig;
-				text = text.replaceAll(re, '<a href="' + location.origin + '/w/$1">$2</a>');
-				re = /\[\[ *([^\]]*?) *\]\]/ig;
-				text = text.replaceAll(re, '<a href="' + location.origin + '/w/$1">$1</a>');
-				re = /''' *(.*?)'''/ig;
-				text = text.replaceAll(re, '<strong>$1</strong>');
-				re = /'' *(.*?)''/ig;
-				text = text.replaceAll(re, '<em>$1</em>');
-				re = /<sup> *(.*?)<\/sup>/ig;
-				text = text.replaceAll(re, '<sup>$1</sup>');
-				re = /<sub> *(.*?)<\/sub>/ig;
-				text = text.replaceAll(re, '<sub>$1</sub>');
-				re = /(\r|\n)/ig;
-				text = text.replaceAll(re, '<br>');
-				*/
+
 				// rescale
 				let xResc = Math.round(x*width/dimx);
 				let wResc = Math.round(w*width/dimx);
@@ -105,64 +89,62 @@ mw.loader.using(['mediawiki.api'], function() {
 					'editable': true
 				};
 				arrResc.push(jsonAnnotResc);
-				
 			});
 			img.annotateImage({
 				editable: true,
 				notes: arrResc
 			});
-
-			// Check for changes
-			setInterval(function() {
-				if($("#AnnImCofig").data("updated")) {
-					// Annots data have been updated - save them
-					var content = "";
-					var i = 1;
-					$(".image-annotate-area").each(function() {
-						let id = $(this).data("id");
-						let text = $(".image-annotate-note[data-id='" + id + "']").text();
-						let x = 0;
-						let y = 0;
-						let w = 0;
-						let h = 0;
-						re = new RegExp("left: *([\.0-9]*)px; *top: *([\.0-9]*)px");
-						if(match = $(this).attr("style").match(re)) {
-							x = parseFloat(match[1]);
-							x = Math.round(x*dimx/width);
-							y = parseFloat(match[2]);
-							y = Math.round(y*dimy/height);
-						}
-						re = new RegExp("height: *([\.0-9]*)px; *width: *([\.0-9]*)px");
-						if(match = $(this).children().first().attr("style").match(re)) {
-							h = parseFloat(match[1]);
-							h = Math.round(h*dimy/height);
-							w = parseFloat(match[2]);
-							w = Math.round(w*dimx/width);
-						}
-						content += "{{ImageNote|id=" + i + "|x=" + x + "|y=" + y + "|w=" + w + "|h=" + h + "|dimx=" + dimx + "|dimy=" + dimy + "}}\n";
-						content += text + "\n{{ImageNoteEnd|id=" + i + "}}\n";
-						i++;
-					});
-					// save to file article (// https://doc.wikimedia.org/mediawiki-core/master/js/#!/api/mw.Api)
-					api.edit(
-						src,
-						function (revision) {
-							re = /\{\{ImageNote\|[^\}]*\}\}[^\{]*\{\{ImageNoteEnd\|[^\}]*\}\}/g;
-							$("#AnnImCofig").data("updated", "");
-							return {
-								text: revision.content.replace(re, "").trimEnd() + "\n\n" + content,
-								summary: mw.message("annotateimage-updated").text(),
-								minor: true
-							};
-						}
-					)
-					.then( function () {
-						//console.log( 'Saved!' );
-					});
-				}
-			}, 1000); // 0.5s
-
 		});
+
+		// Check for changes
+		setInterval(function() {
+			if($("#AnnImCofig").data("updated")) {
+				// Annots data have been updated - save them
+				var content = "";
+				var i = 1;
+				$(".image-annotate-area").each(function() {
+					let id = $(this).data("id");
+					let text = $(".image-annotate-note[data-id='" + id + "']").text();
+					let x = 0;
+					let y = 0;
+					let w = 0;
+					let h = 0;
+					re = new RegExp("left: *([\.0-9]*)px; *top: *([\.0-9]*)px");
+					if(match = $(this).attr("style").match(re)) {
+						x = parseFloat(match[1]);
+						x = Math.round(x*dimx/width);
+						y = parseFloat(match[2]);
+						y = Math.round(y*dimy/height);
+					}
+					re = new RegExp("height: *([\.0-9]*)px; *width: *([\.0-9]*)px");
+					if(match = $(this).children().first().attr("style").match(re)) {
+						h = parseFloat(match[1]);
+						h = Math.round(h*dimy/height);
+						w = parseFloat(match[2]);
+						w = Math.round(w*dimx/width);
+					}
+					content += "{{ImageNote|id=" + i + "|x=" + x + "|y=" + y + "|w=" + w + "|h=" + h + "|dimx=" + dimx + "|dimy=" + dimy + "}}\n";
+					content += text + "\n{{ImageNoteEnd|id=" + i + "}}\n";
+					i++;
+				});
+				// save to file article (// https://doc.wikimedia.org/mediawiki-core/master/js/#!/api/mw.Api)
+				api.edit(
+					src,
+					function (revision) {
+						re = /\{\{ImageNote\|[^\}]*\}\}[^\{]*\{\{ImageNoteEnd\|[^\}]*\}\}/g;
+						$("#AnnImCofig").data("updated", "");
+						return {
+							text: revision.content.replace(re, "").trimEnd() + "\n\n" + content,
+							summary: mw.message("annotateimage-updated").text(),
+							minor: true
+						};
+					}
+				)
+				.then( function () {
+					//console.log( 'Saved!' );
+				});
+			}
+		}, 1000); // 1s
 	}
 });
 }( mediaWiki, jQuery ) );
