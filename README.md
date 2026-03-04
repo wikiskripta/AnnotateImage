@@ -4,7 +4,7 @@ Mediawiki extension.
 
 ## Description
 
-* Version 0.1
+* Version 0.2
 * Image can be annotated at the image's page.
 * JPG and PNG allowed.
 * Annotations are visible also inside the embedded images.
@@ -20,8 +20,8 @@ víceřadý cylindrický epitel s řasinkami a [[Pohárková buňka|pohárkovým
 
 ## Installation
 
-* Make sure you have MediaWiki 1.39+ installed.
-* Your skin should use bootstrap 5.
+* Make sure you have MediaWiki 1.45+ installed.
+* Your skin should use bootstrap 5+.
 * Create templates
 
 '''
@@ -52,16 +52,9 @@ This extension is available in English and Czech language. For other languages, 
 ## Authors and license
 
 * [Josef Martiňák](https://www.wikiskripta.eu/w/User:Josmart)
-* MIT License, Copyright (c) 2023 First Faculty of Medicine, Charles University
+* MIT License, Copyright (c) 2026 First Faculty of Medicine, Charles University
 
 ## Third party plugins and libraries
 
 * [An Image Annotation plugin for jQuery](https://github.com/flipbit/jquery-image-annotate)
-* [jQuery UI](https://jqueryui.com/)
-
-## Poznámky
-
-* Použít obrázek https://www.wikiskripta.eu/w/Soubor:Anotace_ikona.svg
-* Zkusit to upravit, ať se to obejde bez jquery-ui
-* V extensions.json tahat jen ext.js a ostatní potřebné tahat až podle toho, jestli jsou na stránce nějaké obrázky (mw.load?)
 

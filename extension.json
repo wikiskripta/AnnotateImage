@@ -36,7 +36,6 @@
 				"ext.AnnotateImageEdit.css"
 			],
 			"scripts": [
-				"jquery-ui.min.js",
 				"jquery.annotate.js",
 				"ext.AnnotateImageEdit.js"
 			],

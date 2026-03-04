@@ -1,5 +1,163 @@
 (function($) {
     var newCounter = 1;
+
+    // Lightweight drag + resize helpers (replaces jquery-ui draggable/resizable)
+    function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+    }
+
+    function getCanvasRect($canvas) {
+        // Use getBoundingClientRect for consistent coordinates.
+        return $canvas[0].getBoundingClientRect();
+    }
+
+    function ensureResizeHandles($area) {
+        // Keep jquery-ui compatible classnames so existing CSS continues to work.
+        var handles = [
+            { cls: 'ui-resizable-n' },
+            { cls: 'ui-resizable-s' },
+            { cls: 'ui-resizable-e' },
+            { cls: 'ui-resizable-w' },
+            { cls: 'ui-resizable-ne' },
+            { cls: 'ui-resizable-nw' },
+            { cls: 'ui-resizable-se' },
+            { cls: 'ui-resizable-sw' }
+        ];
+        if ($area.children('.ui-resizable-handle').length) {
+            return;
+        }
+        $area.addClass('ui-resizable');
+        handles.forEach(function(h) {
+            $area.append('<div class="ui-resizable-handle ' + h.cls + '" data-handle="' + h.cls + '"></div>');
+        });
+    }
+
+    function makeDraggableResizable($area, $canvas, onUpdate) {
+        ensureResizeHandles($area);
+
+        var ns = '.annotate' + Math.random().toString(36).slice(2);
+
+        var state = {
+            active: false,
+            mode: null, // 'drag' | 'resize'
+            handle: null,
+            startX: 0,
+            startY: 0,
+            startLeft: 0,
+            startTop: 0,
+            startW: 0,
+            startH: 0
+        };
+
+        function readBox() {
+            return {
+                left: parseFloat($area.css('left')) || 0,
+                top: parseFloat($area.css('top')) || 0,
+                width: $area.outerWidth() || 0,
+                height: $area.outerHeight() || 0
+            };
+        }
+
+        function writeBox(left, top, width, height) {
+            $area.css({ left: left + 'px', top: top + 'px', width: width + 'px', height: height + 'px' });
+        }
+
+        function onPointerDown(e) {
+            // Only primary button.
+            if (e.button !== undefined && e.button !== 0) {
+                return;
+            }
+            var $t = $(e.target);
+            var isHandle = $t.hasClass('ui-resizable-handle');
+            if (isHandle) {
+                state.mode = 'resize';
+                state.handle = $t.data('handle');
+            } else {
+                state.mode = 'drag';
+                state.handle = null;
+            }
+            state.active = true;
+            state.startX = e.clientX;
+            state.startY = e.clientY;
+            var box = readBox();
+            state.startLeft = box.left;
+            state.startTop = box.top;
+            state.startW = box.width;
+            state.startH = box.height;
+            $area[0].setPointerCapture && $area[0].setPointerCapture(e.pointerId);
+            e.preventDefault();
+        }
+
+        function onPointerMove(e) {
+            if (!state.active) {
+                return;
+            }
+            var dx = e.clientX - state.startX;
+            var dy = e.clientY - state.startY;
+            var canvasRect = getCanvasRect($canvas);
+            var minW = 20;
+            var minH = 20;
+
+            var left = state.startLeft;
+            var top = state.startTop;
+            var w = state.startW;
+            var h = state.startH;
+
+            if (state.mode === 'drag') {
+                left = clamp(state.startLeft + dx, 0, canvasRect.width - w);
+                top = clamp(state.startTop + dy, 0, canvasRect.height - h);
+            } else {
+                var handle = state.handle || '';
+                var fromN = handle.indexOf('n') !== -1;
+                var fromS = handle.indexOf('s') !== -1;
+                var fromE = handle.indexOf('e') !== -1;
+                var fromW = handle.indexOf('w') !== -1;
+
+                if (fromE) {
+                    w = clamp(state.startW + dx, minW, canvasRect.width - state.startLeft);
+                }
+                if (fromS) {
+                    h = clamp(state.startH + dy, minH, canvasRect.height - state.startTop);
+                }
+                if (fromW) {
+                    var newLeft = clamp(state.startLeft + dx, 0, state.startLeft + state.startW - minW);
+                    w = clamp(state.startW - (newLeft - state.startLeft), minW, canvasRect.width);
+                    left = newLeft;
+                }
+                if (fromN) {
+                    var newTop = clamp(state.startTop + dy, 0, state.startTop + state.startH - minH);
+                    h = clamp(state.startH - (newTop - state.startTop), minH, canvasRect.height);
+                    top = newTop;
+                }
+            }
+
+            writeBox(left, top, w, h);
+            if (typeof onUpdate === 'function') {
+                onUpdate();
+            }
+        }
+
+        function onPointerUp() {
+            if (!state.active) {
+                return;
+            }
+            state.active = false;
+            state.mode = null;
+            state.handle = null;
+        }
+
+        // Pointer events cover mouse + touch.
+        $area.on('pointerdown' + ns, onPointerDown);
+        $(window).on('pointermove' + ns, onPointerMove);
+        $(window).on('pointerup' + ns + ' pointercancel' + ns, onPointerUp);
+
+        // Store a destroyer on the element.
+        $area.data('annotateDestroy', function() {
+            $area.off(ns);
+            $(window).off(ns);
+            $area.removeData('annotateDestroy');
+        });
+    }
     $.fn.annotateImage = function(options) {
         ///	<summary>
         ///		Creates annotations on the given image.
@@ -135,7 +293,10 @@
                 image.notes.push(editable.note);
             }
             editable.destroy();
-            $("#AnnImCofig").data("updated", "1"); // Save to DOM that annots have been changed
+            $("#AnnImCofig").data("updated", "1"); // Backward compatibility
+            if (window.mediaWiki && mediaWiki.hook) {
+                mediaWiki.hook('ext.annotateImage.updated').fire();
+            }
         });
         editable.form.append(ok);
     };
@@ -210,26 +371,10 @@
         this.form.css('left', this.area.offset().left + 'px');
         this.form.css('top', (parseInt(this.area.offset().top) + parseInt(this.area.height()) + 7) + 'px');
 
-        // Set the area as a draggable/resizable element contained in the image canvas.
-        // Would be better to use the containment option for resizable but buggy
-        area.resizable({
-            handles: 'all',
-
-            stop: function(e, ui) {
-                form.css('left', area.offset().left + 'px');
-                form.css('top', (parseInt(area.offset().top) + parseInt(area.height()) + 2) + 'px');
-            }
-        })
-        .draggable({
-            containment: image.canvas,
-            drag: function(e, ui) {
-                form.css('left', area.offset().left + 'px');
-                form.css('top', (parseInt(area.offset().top) + parseInt(area.height()) + 2) + 'px');
-            },
-            stop: function(e, ui) {
-                form.css('left', area.offset().left + 'px');
-                form.css('top', (parseInt(area.offset().top) + parseInt(area.height()) + 2) + 'px');
-            }
+        // Lightweight draggable + resizable (no jquery-ui).
+        makeDraggableResizable(area, image.canvas, function() {
+            form.css('left', area.offset().left + 'px');
+            form.css('top', (parseInt(area.offset().top) + parseInt(area.height()) + 2) + 'px');
         });
         return this;
     };
@@ -239,8 +384,11 @@
         ///		Destroys an editable annotation area.
         ///	</summary>        
         this.image.canvas.children('.image-annotate-edit').hide();
-        this.area.resizable('destroy');
-        this.area.draggable('destroy');
+        var destroyer = this.area.data('annotateDestroy');
+        if (typeof destroyer === 'function') {
+            destroyer();
+        }
+        this.area.children('.ui-resizable-handle').remove();
         this.area.css('height', '');
         this.area.css('width', '');
         this.area.css('left', '');
@@ -355,7 +503,10 @@
                 annotation.image.mode = 'view';
                 editable.destroy();
                 annotation.destroy();
-                $("#AnnImCofig").data("updated", "1"); // Save to DOM that annots have been changed
+                $("#AnnImCofig").data("updated", "1"); // Backward compatibility
+                if (window.mediaWiki && mediaWiki.hook) {
+                    mediaWiki.hook('ext.annotateImage.updated').fire();
+                }
             });
             editable.form.append(del);
 

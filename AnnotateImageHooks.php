@@ -16,29 +16,37 @@ class AnnotateImageHooks {
 	 */
 	public static function fireAnnotator( &$out, &$skin ) {
 
-		if( !$out->isArticle() ) return true;
+		if ( !$out->isArticle() ) {
+			return true;
+		}
 
 		$title = $out->getTitle();
 		$ns = $title->getNamespace();
 		$config = $out->getConfig();
+		$allowed = (string)$config->get( 'AllowedExtensions' );
+		$minWidth = (int)$config->get( 'MinWidth' );
 
-		if($ns == 6) {
-			if(preg_match("/(" . $config->get("AllowedExtensions") . ")$/", $title->getDBkey())) {
-				// fire the editor
-				$out->mBodytext .= "<div id='AnnImCofig' class='d-none' data-allowedextensions='" . $config->get("AllowedExtensions") . "' data-minwidth='" . $config->get("MinWidth") . "' data-updated=''></div>";
-				$out->addModules('ext.AnnotateImageEdit');
+		// Pass config to JS without injecting hidden DOM nodes.
+		$out->addJsConfigVars( 'wgAnnotateImage', [
+			'allowedExtensions' => $allowed,
+			'minWidth' => $minWidth,
+		] );
+
+		if ( $ns === NS_FILE ) {
+			// Only enable editor for allowed file extensions.
+			if ( preg_match( "/($allowed)$/", $title->getDBkey() ) ) {
+				$out->addModules( 'ext.AnnotateImageEdit' );
 			}
+			return true;
 		}
-		else {
-			// show annotations
-			$out->addModules('ext.AnnotateImageEmbed');
-			if(preg_match_all("/<img.*?width=\"([0-9]*)\"/", $out->mBodytext, $matches, PREG_SET_ORDER)) {
-				foreach ( $matches as $m ) {
-					if(intval($m[1]) >= $config->get("MinWidth")) {
-						$out->mBodytext .= "<div id='AnnImCofig' class='d-none' data-allowedextensions='" . $config->get("AllowedExtensions") . "' data-minwidth='" . $config->get("MinWidth") . "'></div>";
-						$out->addModules('ext.AnnotateImageEmbed');
-						break;
-					}
+
+		// Non-file pages: only load embed module when the rendered HTML contains
+		// at least one sufficiently large image (width attribute).
+		if ( isset( $out->mBodytext ) && preg_match_all( '/<img[^>]*\bwidth="([0-9]+)"/i', $out->mBodytext, $matches, PREG_SET_ORDER ) ) {
+			foreach ( $matches as $m ) {
+				if ( (int)$m[1] >= $minWidth ) {
+					$out->addModules( 'ext.AnnotateImageEmbed' );
+					break;
 				}
 			}
 		}

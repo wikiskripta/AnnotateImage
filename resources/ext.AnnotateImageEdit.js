@@ -8,8 +8,14 @@
 $('.fullImageLink > a ').attr('href', '#');
 
 mw.loader.using(['mediawiki.api'], function() {
-	var allowedExtensions = $("#AnnImCofig").data("allowedextensions");
-	var minWidth = $("#AnnImCofig").data("minwidth");
+	// Backward compatibility: the jQuery plugin stores labels/state on #AnnImCofig.
+	if ( $( '#AnnImCofig' ).length === 0 ) {
+		$( 'body' ).append( "<div id='AnnImCofig' class='d-none' data-updated=''></div>" );
+	}
+
+	var cfg = mw.config.get('wgAnnotateImage') || {};
+	var allowedExtensions = cfg.allowedExtensions || $("#AnnImCofig").data("allowedextensions");
+	var minWidth = cfg.minWidth || $("#AnnImCofig").data("minwidth");
 	var img = $(".fullImageLink > a > img");
 	var width = img.attr('width');
 	var height = img.attr('height');
@@ -17,14 +23,15 @@ mw.loader.using(['mediawiki.api'], function() {
 	var dimx;
 	var dimy;
 	var arrResc = [];
+	var saveTimer = null;
 
 	if(width != undefined && width >= minWidth) {
 		// is this extension allowed?
 		var re = new RegExp("\.(" + allowedExtensions + ")$");
 		if(!src.match(re)) return true;
 
-		// get image's dimensions
 		const api = new mw.Api();
+		// get image's dimensions (fallback when there are no annotations yet)
 		var params = {
 			action: 'query',
 			prop: 'imageinfo',
@@ -32,8 +39,7 @@ mw.loader.using(['mediawiki.api'], function() {
 			titles: src,
 			format: 'json'
 		};
-
-		api.get(params).done(function (data) {
+		var imgInfoReq = api.get(params).done(function (data) {
 			const imageInfo = data.query.pages[Object.keys(data.query.pages)[0]];
 			if(dimx == undefined) dimx = imageInfo.imageinfo[0].width;
 			if(dimy == undefined) dimy = imageInfo.imageinfo[0].height;
@@ -46,8 +52,7 @@ mw.loader.using(['mediawiki.api'], function() {
 		$("#AnnImCofig").data("btnadd", mw.message("annotateimage-add").text());
 
 		// Add info
-		//let info = "<div class='d-flex flex-row small lh-sm mt-3 mb-3 AnnImInfo'><img src='https://www.wikiskripta.eu/thumb.php?f=Anotace_ikona.svg&width=35' alt='annotation' width='35' class='me-2 mt-1'>";
-		let info = "<div class='d-flex flex-row small lh-sm mt-3 mb-3 AnnImInfo'><img src='https://www.wikiskripta.eu/sites/www.wikiskripta.eu/images/d/d0/Anotace_ikona.svg' alt='annotation' width='35' class='me-2 mt-1' style='pointer-events: none;'>";
+		let info = "<div class='d-flex flex-row small lh-sm mt-3 mb-3 AnnImInfo'><img src='https://www.wikiskripta.eu/images/d/d0/Anotace_ikona.svg' alt='annotation' width='35' class='me-2 mt-1' style='pointer-events: none;'>";
 		
 		
 		
@@ -64,7 +69,7 @@ mw.loader.using(['mediawiki.api'], function() {
 			format: "json"
 		};
 		
-		api.get(params).done(function (data) {
+		var parseReq = api.get(params).done(function (data) {
 			var imgPageContent = data.parse.wikitext;
 			// Find all annotations
 			re = /\{\{ImageNote\|id=([0-9]*)\|x=([0-9]*)\|y=([0-9]*)\|w=([0-9]*)\|h=([0-9]*)\|dimx=([0-9]*)\|dimy=([0-9]*)[^\}]*}}([^\{]*)\{\{ImageNoteEnd\|id=[0-9]*[^\}]*}}/g;
@@ -103,38 +108,39 @@ mw.loader.using(['mediawiki.api'], function() {
 			});
 		});
 
-		// Check for changes
-		setInterval(function() {
-			if($("#AnnImCofig").data("updated")) {
-				// Annots data have been updated - save them
-				var content = "";
-				var i = 1;
-				$(".image-annotate-area").each(function() {
-					let id = $(this).data("id");
-					let text = $(".image-annotate-note[data-id='" + id + "']").text();
-					let x = 0;
-					let y = 0;
-					let w = 0;
-					let h = 0;
-					re = new RegExp("left: *([\.0-9]*)px; *top: *([\.0-9]*)px");
-					if(match = $(this).attr("style").match(re)) {
-						x = parseFloat(match[1]);
-						x = Math.round(x*dimx/width);
-						y = parseFloat(match[2]);
-						y = Math.round(y*dimy/height);
-					}
-					re = new RegExp("height: *([\.0-9]*)px; *width: *([\.0-9]*)px");
-					if(match = $(this).children().first().attr("style").match(re)) {
-						h = parseFloat(match[1]);
-						h = Math.round(h*dimy/height);
-						w = parseFloat(match[2]);
-						w = Math.round(w*dimx/width);
-					}
-					content += "{{ImageNote|id=" + i + "|x=" + x + "|y=" + y + "|w=" + w + "|h=" + h + "|dimx=" + dimx + "|dimy=" + dimy + "}}\n";
-					content += text + "\n{{ImageNoteEnd|id=" + i + "}}\n";
-					i++;
-				});
-				// save to file article (// https://doc.wikimedia.org/mediawiki-core/master/js/#!/api/mw.Api)
+		function buildContent() {
+			var content = "";
+			var i = 1;
+			$(".image-annotate-area").each(function() {
+				let id = $(this).data("id");
+				let text = $(".image-annotate-note[data-id='" + id + "']").text();
+				let x = 0;
+				let y = 0;
+				let w = 0;
+				let h = 0;
+				re = new RegExp("left: *([\.0-9]*)px; *top: *([\.0-9]*)px");
+				let match;
+				if ((match = (($(this).attr("style") || "")).match(re))) {
+					x = Math.round(parseFloat(match[1]) * dimx / width);
+					y = Math.round(parseFloat(match[2]) * dimy / height);
+				}
+				re = new RegExp("height: *([\.0-9]*)px; *width: *([\.0-9]*)px");
+				var innerStyle = $(this).children().first().attr("style") || "";
+				if ((match = innerStyle.match(re))) {
+					h = Math.round(parseFloat(match[1]) * dimy / height);
+					w = Math.round(parseFloat(match[2]) * dimx / width);
+				}
+				content += "{{ImageNote|id=" + i + "|x=" + x + "|y=" + y + "|w=" + w + "|h=" + h + "|dimx=" + dimx + "|dimy=" + dimy + "}}\n";
+				content += text + "\n{{ImageNoteEnd|id=" + i + "}}\n";
+				i++;
+			});
+			return content;
+		}
+
+		function saveNow() {
+			// Ensure dimensions are known.
+			$.when(imgInfoReq, parseReq).always(function() {
+				var content = buildContent();
 				api.edit(
 					src,
 					function (revision) {
@@ -146,12 +152,15 @@ mw.loader.using(['mediawiki.api'], function() {
 							minor: true
 						};
 					}
-				)
-				.then( function () {
-					//console.log( 'Saved!' );
-				});
-			}
-		}, 1000); // 1s
+				);
+			});
+		}
+
+		mw.hook('ext.annotateImage.updated').add(function() {
+			// Debounce to avoid multiple rapid saves.
+			clearTimeout(saveTimer);
+			saveTimer = setTimeout(saveNow, 400);
+		});
 	}
 });
 }( mediaWiki, jQuery ) );
