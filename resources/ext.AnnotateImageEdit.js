@@ -46,8 +46,11 @@ mw.loader.using(['mediawiki.api'], function() {
 		$("#AnnImCofig").data("btnadd", mw.message("annotateimage-add").text());
 
 		// Add info
+		//let info = "<div class='d-flex flex-row small lh-sm mt-3 mb-3 AnnImInfo'><img src='https://www.wikiskripta.eu/thumb.php?f=Anotace_ikona.svg&width=35' alt='annotation' width='35' class='me-2 mt-1'>";
 		let info = "<div class='d-flex flex-row small lh-sm mt-3 mb-3 AnnImInfo'><img src='https://www.wikiskripta.eu/sites/www.wikiskripta.eu/images/d/d0/Anotace_ikona.svg' alt='annotation' width='35' class='me-2 mt-1' style='pointer-events: none;'>";
-
+		
+		
+		
 		re = new RegExp("#BR#");
 		info += "<div class='mt-1'>" + mw.message("annotateimage-info").text().replace(re, "<br>") +"</div>\n";
 		info += "<div class='AnnImAdd'></div>\n</div>";

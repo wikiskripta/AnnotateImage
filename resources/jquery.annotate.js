@@ -277,7 +277,7 @@
         }, function() {
             setTimeout(() => {
                 annotation.hide();
-            }, "500");
+            }, "1500");
             //annotation.hide();
         });
 
