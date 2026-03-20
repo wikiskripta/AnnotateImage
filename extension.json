@@ -2,7 +2,7 @@
 	"name": "AnnotateImage",
 	"version": "0.2",
 	"author": "[https://www.wikiskripta.eu/w/User:Josmart Josef Martiňák]",
-	"url": "https://bitbucket.org/wikiskripta/annotateimage",
+	"url": "https://github.com/wikiskripta/AnnotateImage",
 	"descriptionmsg": "annotateimage-desc",
 	"license-name": "MIT",
 	"type": "editor",
