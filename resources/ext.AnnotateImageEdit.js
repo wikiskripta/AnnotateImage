@@ -25,6 +25,27 @@ mw.loader.using(['mediawiki.api'], function() {
 	var arrResc = [];
 	var saveTimer = null;
 
+	function getRenderedSize( $img ) {
+		var el = $img[0];
+		var rect = el && el.getBoundingClientRect ? el.getBoundingClientRect() : { width: 0, height: 0 };
+		var w = rect.width || parseFloat($img.css('width')) || parseFloat($img.attr('width')) || el.naturalWidth || 0;
+		var h = rect.height || parseFloat($img.css('height')) || parseFloat($img.attr('height')) || el.naturalHeight || 0;
+		if (!h && w && el.naturalWidth && el.naturalHeight) {
+			h = Math.round(w * el.naturalHeight / el.naturalWidth);
+		}
+		return { width: Math.round(w), height: Math.round(h) };
+	}
+
+	function extractAnnotationParam( header, name ) {
+		var re = new RegExp('\\|' + name + '=([^|}]*)');
+		var match = (header || '').match(re);
+		return match ? match[1].trim() : '';
+	}
+
+	var renderedSize = getRenderedSize(img);
+	width = renderedSize.width || parseInt(width, 10);
+	height = renderedSize.height || parseInt(height, 10) || width;
+
 	if(width != undefined && width >= minWidth) {
 		// is this extension allowed?
 		var re = new RegExp("\.(" + allowedExtensions + ")$");
@@ -72,19 +93,21 @@ mw.loader.using(['mediawiki.api'], function() {
 		var parseReq = api.get(params).done(function (data) {
 			var imgPageContent = data.parse.wikitext;
 			// Find all annotations
-			re = /\{\{ImageNote\|id=([0-9]*)\|x=([0-9]*)\|y=([0-9]*)\|w=([0-9]*)\|h=([0-9]*)\|dimx=([0-9]*)\|dimy=([0-9]*)[^\}]*}}([^\{]*)\{\{ImageNoteEnd\|id=[0-9]*[^\}]*}}/g;
+			re = /\{\{ImageNote(\|id=([0-9]*)\|x=([0-9]*)\|y=([0-9]*)\|w=([0-9]*)\|h=([0-9]*)\|dimx=([0-9]*)\|dimy=([0-9]*)[^\}]*)}}([^\{]*)\{\{ImageNoteEnd\|id=[0-9]*[^\}]*}}/g;
 			let annotations = [...imgPageContent.matchAll(re)];
 			//var jsonAnnot;
 			var jsonAnnotResc;
 			annotations.forEach((annot) => {
-				let id = annot[1];
-				let x = parseFloat(annot[2]);
-				let y = parseFloat(annot[3]);
-				let w = parseFloat(annot[4]);
-				let h = parseFloat(annot[5]);
-				dimx = parseInt(annot[6]);
-				dimy = parseInt(annot[7]);
-				let text = annot[8].trim();
+				let header = annot[1];
+				let id = annot[2];
+				let x = parseFloat(annot[3]);
+				let y = parseFloat(annot[4]);
+				let w = parseFloat(annot[5]);
+				let h = parseFloat(annot[6]);
+				dimx = parseInt(annot[7]);
+				dimy = parseInt(annot[8]);
+				let text = annot[9].trim();
+				let url = extractAnnotationParam(header, 'url');
 
 				// rescale
 				let xResc = Math.round(x*width/dimx);
@@ -97,6 +120,7 @@ mw.loader.using(['mediawiki.api'], function() {
 					'width': wResc,
 					'height': hResc,
 					'text': text,
+					'url': url,
 					'id': id,
 					'editable': true
 				};
@@ -113,7 +137,9 @@ mw.loader.using(['mediawiki.api'], function() {
 			var i = 1;
 			$(".image-annotate-area").each(function() {
 				let id = $(this).data("id");
-				let text = $(".image-annotate-note[data-id='" + id + "']").text();
+				let note = $(".image-annotate-note[data-id='" + id + "']");
+				let text = note.text();
+				let url = note.data('url') || $(this).data('url') || '';
 				let x = 0;
 				let y = 0;
 				let w = 0;
@@ -130,7 +156,11 @@ mw.loader.using(['mediawiki.api'], function() {
 					h = Math.round(parseFloat(match[1]) * dimy / height);
 					w = Math.round(parseFloat(match[2]) * dimx / width);
 				}
-				content += "{{ImageNote|id=" + i + "|x=" + x + "|y=" + y + "|w=" + w + "|h=" + h + "|dimx=" + dimx + "|dimy=" + dimy + "}}\n";
+				content += "{{ImageNote|id=" + i + "|x=" + x + "|y=" + y + "|w=" + w + "|h=" + h + "|dimx=" + dimx + "|dimy=" + dimy;
+				if (url) {
+					content += "|url=" + String(url).replace(/[\r\n|}]/g, '');
+				}
+				content += "}}\n";
 				content += text + "\n{{ImageNoteEnd|id=" + i + "}}\n";
 				i++;
 			});

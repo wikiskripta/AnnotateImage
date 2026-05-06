@@ -14,22 +14,79 @@
 		var allowedExtensions = cfg.allowedExtensions || $( '#AnnImCofig' ).data( 'allowedextensions' );
 		var minWidth = cfg.minWidth || $( '#AnnImCofig' ).data( 'minwidth' );
 
-		function extractFilename( src ) {
-			// Keep compatibility with the original parsing logic.
-			var s = src;
-			var re = new RegExp( '/sites/[^/]*' );
-			s = s.replace( re, '' );
+		function safeDecode( value ) {
+			try {
+				return decodeURIComponent( value );
+			} catch ( e ) {
+				return value;
+			}
+		}
 
-			if ( s.includes( '/thumb/' ) ) {
-				re = new RegExp( '.*/([^/]*)/[^/]*$' );
-			} else if ( s.includes( 'thumb.php' ) ) {
-				re = new RegExp( 'f=(.*?)&width' );
-			} else {
-				re = new RegExp( '.*/([^/]*)$' );
+		function normalizeFilenameKey( filename ) {
+			return safeDecode( filename || '' ).replace( /_/g, ' ' );
+		}
+
+		function getRenderedSize( $img ) {
+			var el = $img[ 0 ];
+			var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : { width: 0, height: 0 };
+			var width = rect.width || parseFloat( $img.css( 'width' ) ) || parseFloat( $img.attr( 'width' ) ) || el.naturalWidth || 0;
+			var height = rect.height || parseFloat( $img.css( 'height' ) ) || parseFloat( $img.attr( 'height' ) ) || el.naturalHeight || 0;
+
+			if ( !height && width && el.naturalWidth && el.naturalHeight ) {
+				height = Math.round( width * el.naturalHeight / el.naturalWidth );
+			}
+			if ( !width && height && el.naturalWidth && el.naturalHeight ) {
+				width = Math.round( height * el.naturalWidth / el.naturalHeight );
 			}
 
-			var match = s.match( re );
-			return match ? match[ 1 ] : null;
+			return {
+				width: Math.round( width ),
+				height: Math.round( height )
+			};
+		}
+
+		function extractAnnotationParam( header, name ) {
+			var re = new RegExp( '\\|' + name + '=([^|}]*)' );
+			var match = ( header || '' ).match( re );
+			return match ? match[ 1 ].trim() : '';
+		}
+
+		function normalizeUrl( url ) {
+			url = ( url || '' ).trim();
+			if ( !url ) {
+				return '';
+			}
+			if ( url.indexOf( '//' ) === 0 ) {
+				return location.protocol + url;
+			}
+			if ( /^(https?:|mailto:)/i.test( url ) ) {
+				return url;
+			}
+			if ( url.charAt( 0 ) === '/' ) {
+				return location.origin + url;
+			}
+			return location.origin + '/w/' + encodeURIComponent( url ).replace( /%2F/g, '/' );
+		}
+
+		function extractFilename( src ) {
+			var s = ( src || '' ).split( '#' )[ 0 ].split( '?' )[ 0 ];
+			var match;
+
+			if ( s.indexOf( '/thumb/' ) !== -1 ) {
+				// MediaWiki thumb URL: /images/thumb/a/ab/File_name.jpg/300px-File_name.jpg
+				match = s.match( /\/thumb\/(?:[^/]+\/){2}([^/]+)\// );
+				if ( match ) {
+					return safeDecode( match[ 1 ] );
+				}
+			}
+
+			match = ( src || '' ).match( /[?&]f=([^&]+)/ );
+			if ( match ) {
+				return safeDecode( match[ 1 ] );
+			}
+
+			match = s.match( /\/([^/]+)$/ );
+			return match ? safeDecode( match[ 1 ] ) : null;
 		}
 
 		function transformText( text ) {
@@ -62,12 +119,12 @@
 		}
 
 		function parseAnnotations( wikitext ) {
-			var re = /\{\{ImageNote\|id=([0-9]*)\|x=([0-9]*)\|y=([0-9]*)\|w=([0-9]*)\|h=([0-9]*)\|dimx=([0-9]*)\|dimy=([0-9]*)[^\}]*}}([^\{]*)\{\{ImageNoteEnd\|id=[0-9]*[^\}]*}}/g;
+			var re = /\{\{ImageNote(\|id=([0-9]*)\|x=([0-9]*)\|y=([0-9]*)\|w=([0-9]*)\|h=([0-9]*)\|dimx=([0-9]*)\|dimy=([0-9]*)[^\}]*)}}([^\{]*)\{\{ImageNoteEnd\|id=[0-9]*[^\}]*}}/g;
 			return [ ...wikitext.matchAll( re ) ];
 		}
 
 		// Collect candidate images and group them by filename.
-		var files = new Map(); // filename -> { title: 'File:...', items: [ { img, width, height } ] }
+		var files = new Map(); // normalized filename -> { title: 'File:...', items: [ { img, width, height } ] }
 		var extRe = new RegExp( '\\.(' + allowedExtensions + ')$' );
 
 		$( 'img' ).each( function () {
@@ -75,32 +132,31 @@
 			if ( $img.data( 'annotateImageLoaded' ) ) {
 				return;
 			}
-			var width = $img.attr( 'width' );
-			var height = $img.attr( 'height' );
-			if ( width === undefined || height === undefined ) {
+			var size = getRenderedSize( $img );
+			var width = size.width;
+			var height = size.height;
+			if ( !width ) {
 				return;
 			}
-			width = parseInt( width, 10 );
-			height = parseInt( height, 10 );
-			if ( !width || width < minWidth ) {
-				return;
+			if ( !height ) {
+				height = Math.round( width );
 			}
 			var filename = extractFilename( $img.attr( 'src' ) || '' );
 			if ( !filename ) {
 				return;
 			}
-			filename = decodeURI( filename );
 			if ( !filename.match( extRe ) ) {
 				return;
 			}
 
-			if ( !files.has( filename ) ) {
-				files.set( filename, {
-					title: 'File:' + filename,
+			var key = normalizeFilenameKey( filename );
+			if ( !files.has( key ) ) {
+				files.set( key, {
+					title: 'File:' + key,
 					items: []
 				} );
 			}
-			files.get( filename ).items.push( { img: $img, width: width, height: height } );
+			files.get( key ).items.push( { img: $img, width: width, height: height } );
 		} );
 
 		if ( files.size === 0 ) {
@@ -127,8 +183,9 @@
 			if ( !page || !page.title ) {
 				return;
 			}
-			var filename = page.title.replace( /^File:/, '' );
-			if ( !files.has( filename ) ) {
+			var filename = page.title.replace( /^(File|Soubor):/, '' );
+			var key = normalizeFilenameKey( filename );
+			if ( !files.has( key ) ) {
 				return;
 			}
 			var rev = page.revisions && page.revisions[ 0 ];
@@ -142,17 +199,22 @@
 				return;
 			}
 
-			files.get( filename ).items.forEach( function ( item ) {
+			files.get( key ).items.forEach( function ( item ) {
 				var arr = [];
+				var liveSize = getRenderedSize( item.img );
+				item.width = liveSize.width || item.width;
+				item.height = liveSize.height || item.height || item.width;
 				annotations.forEach( function ( annot ) {
-					var id = annot[ 1 ];
-					var x = parseFloat( annot[ 2 ] );
-					var y = parseFloat( annot[ 3 ] );
-					var w = parseFloat( annot[ 4 ] );
-					var h = parseFloat( annot[ 5 ] );
-					var dimx = parseFloat( annot[ 6 ] );
-					var dimy = parseFloat( annot[ 7 ] );
-					var text = transformText( ( annot[ 8 ] || '' ).trim() );
+					var header = annot[ 1 ];
+					var id = annot[ 2 ];
+					var x = parseFloat( annot[ 3 ] );
+					var y = parseFloat( annot[ 4 ] );
+					var w = parseFloat( annot[ 5 ] );
+					var h = parseFloat( annot[ 6 ] );
+					var dimx = parseFloat( annot[ 7 ] );
+					var dimy = parseFloat( annot[ 8 ] );
+					var text = transformText( ( annot[ 9 ] || '' ).trim() );
+					var url = normalizeUrl( extractAnnotationParam( header, 'url' ) );
 
 					arr.push( {
 						top: Math.round( y * item.height / dimy ),
@@ -160,6 +222,7 @@
 						width: Math.round( w * item.width / dimx ),
 						height: Math.round( h * item.height / dimy ),
 						text: text,
+						url: url,
 						id: id,
 						editable: false
 					} );

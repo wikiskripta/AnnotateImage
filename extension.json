@@ -1,6 +1,6 @@
 {
 	"name": "AnnotateImage",
-	"version": "0.2",
+	"version": "0.2.2",
 	"author": "[https://www.wikiskripta.eu/w/User:Josmart Josef Martiňák]",
 	"url": "https://github.com/wikiskripta/AnnotateImage",
 	"descriptionmsg": "annotateimage-desc",
@@ -63,7 +63,7 @@
 	},
 	"config": {
 		"AllowedExtensions": {
-			"value": "jpg|png|svgjpg|png|svg|JPG|PNG|SVG",
+			"value": "jpg|jpeg|png|svg|gif|JPG|JPEG|PNG|SVG|GIF",
 			"description": "File extensions available for use with an annotator."
 		},
 		"MinWidth": {

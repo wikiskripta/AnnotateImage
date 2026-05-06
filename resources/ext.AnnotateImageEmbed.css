@@ -5,6 +5,8 @@
     border: solid 1px #ccc;
     background-position: left top;
     background-repeat: no-repeat;
+    background-size: 100% 100% !important;
+    background-position: center center !important;
     display: block;
     margin: 0;
     position: relative;
@@ -38,4 +40,8 @@
     padding: 3px 7px;
     position: absolute;
     z-index: 10000;
+}
+
+.image-annotate-area-linked {
+    cursor: pointer;
 }

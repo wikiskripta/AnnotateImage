@@ -40,16 +40,12 @@ class AnnotateImageHooks {
 			return true;
 		}
 
-		// Non-file pages: only load embed module when the rendered HTML contains
-		// at least one sufficiently large image (width attribute).
-		if ( isset( $out->mBodytext ) && preg_match_all( '/<img[^>]*\bwidth="([0-9]+)"/i', $out->mBodytext, $matches, PREG_SET_ORDER ) ) {
-			foreach ( $matches as $m ) {
-				if ( (int)$m[1] >= $minWidth ) {
-					$out->addModules( 'ext.AnnotateImageEmbed' );
-					break;
-				}
-			}
-		}
+		// Non-file pages: load the embed module on article pages and let the
+		// client-side code filter eligible images. In MediaWiki 1.45 the rendered
+		// body HTML is not a stable public OutputPage API, so checking $out->mBodytext
+		// here can prevent the module from loading even when the page contains
+		// annotable images.
+		$out->addModules( 'ext.AnnotateImageEmbed' );
 		return true;
 	}
 }

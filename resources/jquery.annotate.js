@@ -6,6 +6,23 @@
         return Math.max(min, Math.min(max, v));
     }
 
+    function escapeHtml(value) {
+        return String(value || '').replace(/[&<>\"]/g, function(ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' }[ch];
+        });
+    }
+
+    function sanitizeAnnotationUrl(url) {
+        url = String(url || '').trim();
+        if (!url) {
+            return '';
+        }
+        if (/^(https?:|mailto:|\/)/i.test(url) || url.indexOf('//') === 0) {
+            return url;
+        }
+        return window.mediaWiki && mediaWiki.util ? mediaWiki.util.getUrl(url) : ('/w/' + encodeURIComponent(url).replace(/%2F/g, '/'));
+    }
+
     function getCanvasRect($canvas) {
         // Use getBoundingClientRect for consistent coordinates.
         return $canvas[0].getBoundingClientRect();
@@ -280,16 +297,17 @@
         ok.click(function() {
             var form = $('#image-annotate-edit-form form');
             var text = $('#image-annotate-text').val();
+            var url = $('#image-annotate-url').val();
             $.fn.annotateImage.appendPosition(form, editable)
             image.mode = 'view';
 
             // Add to canvas
             if (note) {
-                note.resetPosition(editable, text);
+                note.resetPosition(editable, text, url);
             } else {
                 editable.note.editable = true;
                 note = new $.fn.annotateView(image, editable.note)
-                note.resetPosition(editable, text);
+                note.resetPosition(editable, text, url);
                 image.notes.push(editable.note);
             }
             editable.destroy();
@@ -348,6 +366,7 @@
             newNote.width = 30;
             newNote.height = 30;
             newNote.text = "";
+            newNote.url = "";
             this.note = newNote;
         }
 
@@ -364,7 +383,7 @@
         image.canvas.children('.image-annotate-edit').show();
 
         // Add the note (which we'll load with the form afterwards)
-        var form = $('<div id="image-annotate-edit-form"><form><textarea id="image-annotate-text" name="text" rows="3" cols="30">' + this.note.text + '</textarea></form></div>');
+        var form = $('<div id="image-annotate-edit-form"><form><textarea id="image-annotate-text" name="text" rows="3" cols="30">' + escapeHtml(this.note.text) + '</textarea><input id="image-annotate-url" name="url" type="url" placeholder="URL po kliknutí (volitelné)" value="' + escapeHtml(this.note.url || '') + '"></form></div>');
         this.form = form;
 
         $('body').append(this.form);
@@ -407,10 +426,12 @@
 
         // Add the area
         this.area = $('<div class="image-annotate-area' + (this.editable ? ' image-annotate-area-editable' : '') + '" data-id="' + note.id + '"><div></div></div>');
+        this.area.data('url', note.url || '');
         image.canvas.children('.image-annotate-view').prepend(this.area);
 
         // Add the note
         this.form = $('<div class="image-annotate-note" data-id="' + note.id + '">' + note.text + '</div>');
+        this.form.data('url', note.url || '');
         this.form.hide();
         image.canvas.children('.image-annotate-view').append(this.form);
         this.form.children('span.actions').hide();
@@ -429,11 +450,17 @@
             //annotation.hide();
         });
 
-        // Edit a note feature
+        var form = this;
         if (this.editable) {
-            var form = this;
             this.area.click(function() {
                 form.edit();
+                return false;
+            });
+        } else if (this.note.url) {
+            this.area.addClass('image-annotate-area-linked');
+            this.area.attr('title', this.note.url);
+            this.area.click(function() {
+                window.open(sanitizeAnnotationUrl(form.note.url), '_blank', 'noopener');
                 return false;
             });
         }
@@ -526,12 +553,14 @@
         form.append(areaFields);
     }
 
-    $.fn.annotateView.prototype.resetPosition = function(editable, text) {
+    $.fn.annotateView.prototype.resetPosition = function(editable, text, url) {
         ///	<summary>
         ///		Sets the position of an annotation.
         ///	</summary>
         this.form.html(text);
         this.form.hide();
+        this.form.data('url', url || '');
+        this.area.data('url', url || '');
 
         // Resize
         this.area.children('div').height(editable.area.height() + 'px');
@@ -547,6 +576,7 @@
         this.note.height = editable.area.height();
         this.note.width = editable.area.width();
         this.note.text = text;
+        this.note.url = url || '';
         this.note.id = editable.note.id;
         this.editable = true;
     };
